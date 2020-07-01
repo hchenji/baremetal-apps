@@ -47,30 +47,28 @@ int main() {
     // Determine tiles rank
     uint32_t rank = optimsoc_get_ctrank();
 
-    optimsoc_mp_endpoint_handle ep;
-    optimsoc_mp_endpoint_create(&ep, 0, 0, OPTIMSOC_MP_EP_CONNECTIONLESS, 9, 0);
-
-    printf("Hello World! Core %d of %d in tile %d, my absolute core id is: %d\n",
+	printf("Hello World! Core %d of %d in tile %d, my absolute core id is: %d\n",
          optimsoc_get_relcoreid(), optimsoc_get_tilenumcores(),
          optimsoc_get_tileid(), optimsoc_get_abscoreid());
 
-    printf("There are %d compute tiles\n", optimsoc_get_numct());
+  	printf("There are %d compute tiles\n", optimsoc_get_numct());
 
-    if (rank==0) {
-        size_t count = 0;
-        while(count < (optimsoc_get_numct() - 1)) {
-            uint32_t remote;
-            size_t received;
-            optimsoc_mp_msg_recv(ep, (uint8_t*) &remote, 4, &received);
-            printf("Received from %d\n", remote);
-            count++;
-        }
-    } else {
-        optimsoc_mp_endpoint_handle ep_remote;
-        optimsoc_mp_endpoint_get(&ep_remote, 0, 0, 0);
+    optimsoc_mp_endpoint_handle ep;
+    optimsoc_mp_endpoint_create(&ep, 0, 0, OPTIMSOC_MP_EP_CONNECTIONLESS, 2, 0);
 
-        optimsoc_mp_msg_send(ep, ep_remote, (uint8_t*) &rank, sizeof(rank));
-    }
+    //	send a message to the neighbor whose id is 1 more than you
+    uint32_t dest = (rank+1) % optimsoc_get_numct();
+
+    optimsoc_mp_endpoint_handle ep_remote;
+    optimsoc_mp_endpoint_get(&ep_remote, dest, 0, 0);
+    optimsoc_mp_msg_send(ep, ep_remote, (uint8_t*) &rank, sizeof(rank));
+  	printf("Sent message to tile %d\n", dest);
+
+    // now listen for messages
+	uint32_t remote;
+	size_t received;
+	optimsoc_mp_msg_recv(ep, (uint8_t*) &remote, 4, &received);
+	printf("Received from %d\n", remote);
 
     return 0;
 }
