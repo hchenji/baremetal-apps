@@ -55,7 +55,7 @@ void recv(uint32_t *buffer, size_t len) {
     source_rank = optimsoc_get_tilerank(source_tile);
 
     // Print hello for this
-    //printf("Hello World from %d!\n",source_rank);
+    printf("Hello World from %d!\n",source_rank);
 
     // Count up received messages
     hello_received++;
@@ -63,8 +63,8 @@ void recv(uint32_t *buffer, size_t len) {
 
 // The main function
 int main() {
-    if (or1k_coreid() != 0)
-        return 0;
+//    if (or1k_coreid() != 0)
+//        return 0;
 
     // Initialize optimsoc library
     optimsoc_init(0);
@@ -74,9 +74,17 @@ int main() {
     optimsoc_mp_simple_addhandler(0,&recv);
     or1k_interrupts_enable();
 
+    printf("Hello World! Core %d of %d in tile %d, my absolute core id is: %d\n",
+         optimsoc_get_relcoreid(), optimsoc_get_tilenumcores(),
+         optimsoc_get_tileid(), optimsoc_get_abscoreid());
+
+    printf("There are %d compute tiles\n", optimsoc_get_numct());
+
     // Determine tiles rank
     int rank = optimsoc_get_ctrank();
     size_t endpoints = optimsoc_mp_simple_num_endpoints();
+
+    printf("rank is %d endpoints is %d\n", rank, endpoints);
 
     if (rank==0) {
       size_t total = (optimsoc_get_numct()-1) * endpoints;
@@ -91,7 +99,7 @@ int main() {
         // Conclude and print hello
         printf("Received all messages. Hello World!\n",rank,optimsoc_get_numct());
     } else {
-        for (int ep = 0; ep < endpoints; ep++) {
+        for (int ep = 1; ep < 2; ep++) {
           // Wait until the remote endpoint buffer is ready
           while (!optimsoc_mp_simple_ctready(0,ep)) {}
 
@@ -109,7 +117,7 @@ int main() {
 
           // Send the message
           optimsoc_mp_simple_send(ep,1,(uint32_t*) buffer);
-	}
+        }
     }
 
     return 0;
