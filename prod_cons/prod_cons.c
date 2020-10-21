@@ -36,7 +36,7 @@
 #include <assert.h>
 
 #define MAX_MSGS 1
-#define	MSG_DEST 4
+#define	MSG_DEST 50
 
 typedef struct {
 	uint32_t id;
@@ -79,7 +79,7 @@ int main() {
 				msg_t* rmsg = (msg_t*) buf;
 				count[rmsg->id]++;
 
-//				if ( (count[rmsg->id] & 15) == 0)
+				// if ( (count[rmsg->id] & 31) == 0)
 					printf("Received from %d seq %04d/%04d\n", rmsg->id, count[rmsg->id], rmsg->seq + 1);
             } else {
             	printf("error %d: %s\n", err, optimsoc_mp_error_string(err));
@@ -87,7 +87,7 @@ int main() {
     	}
     }
 
-    if (id == 0 || id == 8) {
+    if (id == 0 || id == 99) {
     	// just send msgs to MSG_DEST
         uint32_t dest = MSG_DEST;
 
@@ -101,7 +101,7 @@ int main() {
         while (1) {
             int err = optimsoc_mp_msg_send(ep, ep_remote, (uint8_t*) &msg, sizeof(msg));
             if (err == 0) {
-				if ( (msg.seq & 15) == 0)
+				if ( (msg.seq & 63) == 0)
 					printf("Sent message to tile %d seq %d\n", dest, msg.seq);
             } else {
             	printf("error %d: %s\n", err, optimsoc_mp_error_string(err));
