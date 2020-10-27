@@ -36,7 +36,7 @@
 #include <assert.h>
 
 #define MAX_MSGS 1
-#define	MSG_DEST 50
+#define	MSG_DEST 4
 
 typedef struct {
 	uint32_t id;
@@ -69,6 +69,7 @@ int main() {
 		uint8_t buf[16];
 		size_t received;
 		uint16_t *count = calloc(0, 9 * sizeof(uint16_t));
+		size_t max_msgs = 0;
 
     	while (1) {
     	    // now listen for messages
@@ -78,16 +79,19 @@ int main() {
 	//    		printf("Received msg of size %d\n", received);
 				msg_t* rmsg = (msg_t*) buf;
 				count[rmsg->id]++;
-
+				max_msgs++;
 				// if ( (count[rmsg->id] & 31) == 0)
 					printf("Received from %d seq %04d/%04d\n", rmsg->id, count[rmsg->id], rmsg->seq + 1);
             } else {
             	printf("error %d: %s\n", err, optimsoc_mp_error_string(err));
             }
+
+  		if (max_msgs == 2 * MAX_MSGS)
+			break;
     	}
     }
 
-    if (id == 0 || id == 99) {
+    if (id == 0 || id == 8) {
     	// just send msgs to MSG_DEST
         uint32_t dest = MSG_DEST;
 
